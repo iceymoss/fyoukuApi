@@ -15,5 +15,6 @@ import (
 // 路由配置
 func init() {
 	beego.Router("/register/save", &controllers.UserController{}, "post:SaveRegister")
+	beego.Router("/login/do", &controllers.UserController{}, "post:LoginDo")
 	//beego.Include(&controllers.UserController{})
 }
