@@ -14,7 +14,19 @@ import (
 
 // 路由配置
 func init() {
+	//用户模块
 	beego.Router("/register/save", &controllers.UserController{}, "post:SaveRegister")
 	beego.Router("/login/do", &controllers.UserController{}, "post:LoginDo")
+
+	//视频列表
+	beego.Router("/channel/advert", &controllers.VideoControllers{}, "get:ChannelAdvert")
+	beego.Router("/channel/hot", &controllers.VideoControllers{}, "get:GetChannelHotList")
+	beego.Router("/channel/recommend/region", &controllers.VideoControllers{}, "get:GetChannelRecommendRegionList")
+	beego.Router("/channel/recommend/type", &controllers.VideoControllers{}, "get:GetChannelTypeList")
+
+	//视频筛选条件列表
+	beego.Router("/channel/region", &controllers.BaseController{}, "get:ChannelRegion")
+	beego.Router("/channel/type", &controllers.BaseController{}, "get:ChannelType")
+
 	//beego.Include(&controllers.UserController{})
 }
