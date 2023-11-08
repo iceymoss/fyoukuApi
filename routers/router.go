@@ -28,5 +28,12 @@ func init() {
 	beego.Router("/channel/region", &controllers.BaseController{}, "get:ChannelRegion")
 	beego.Router("/channel/type", &controllers.BaseController{}, "get:ChannelType")
 
+	//筛选视频列表
+	beego.Router("/channel/video", &controllers.VideoControllers{}, "get:ChannelVideoList")
+
+	//视频详情
+	beego.Router("/video/info", &controllers.VideoControllers{}, "get:VideoInfo")
+	beego.Router("/video/episodes/list", &controllers.VideoControllers{}, "get:VideoEpisodesList")
+
 	//beego.Include(&controllers.UserController{})
 }

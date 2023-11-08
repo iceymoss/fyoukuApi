@@ -91,3 +91,72 @@ func (v *VideoControllers) GetChannelTypeList() {
 		v.ServeJSON()
 	}
 }
+
+// ChannelVideoList 根据传入参数获取视频列表
+func (v *VideoControllers) ChannelVideoList() {
+	//获取频道ID
+	channelId, _ := v.GetInt("channelId")
+	//获取频道地区ID
+	regionId, _ := v.GetInt("regionId")
+	//获取频道类型ID
+	typeId, _ := v.GetInt("typeId")
+	//获取状态
+	end := v.GetString("end")
+	//获取排序
+	sort := v.GetString("sort")
+	//获取页码信息
+	limit, _ := v.GetInt("limit")
+	offset, _ := v.GetInt("offset")
+
+	if channelId == 0 {
+		v.Data["json"] = ReturnError(4001, "必须指定频道")
+		v.ServeJSON()
+	}
+
+	if limit == 0 {
+		limit = 12
+	}
+
+	num, videos, err := models.GetChannelVideoList(channelId, regionId, typeId, end, sort, offset, limit)
+	if err == nil {
+		v.Data["json"] = ReturnSuccess(0, "success", videos, num)
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnError(4004, "没有相关内容")
+		v.ServeJSON()
+	}
+}
+
+// VideoInfo 视频详细信息
+func (v *VideoControllers) VideoInfo() {
+	videoId, _ := v.GetInt("videoId")
+	if videoId == 0 {
+		v.Data["json"] = ReturnError(4001, "必须指定视频ID")
+		v.ServeJSON()
+	}
+	video, err := models.GetVideoInfo(videoId)
+	if err == nil {
+		v.Data["json"] = ReturnSuccess(0, "success", video, 1)
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnError(4004, "请求数据失败，请稍后重试~")
+		v.ServeJSON()
+	}
+}
+
+// VideoEpisodesList 获取视频剧集列表
+func (v *VideoControllers) VideoEpisodesList() {
+	videoId, _ := v.GetInt("videoId")
+	if videoId == 0 {
+		v.Data["json"] = ReturnError(4001, "必须指定视频ID")
+		v.ServeJSON()
+	}
+	num, episodes, err := models.GetVideoEpisodesList(videoId)
+	if err == nil {
+		v.Data["json"] = ReturnSuccess(0, "success", episodes, num)
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnError(4004, "请求数据失败，请稍后重试~")
+		v.ServeJSON()
+	}
+}
