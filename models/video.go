@@ -1,6 +1,8 @@
 package models
 
-import "github.com/astaxie/beego/orm"
+import (
+	"github.com/astaxie/beego/orm"
+)
 
 // Video 定义表结构
 type Video struct {
@@ -118,4 +120,20 @@ func GetVideoEpisodesList(videoId int) (int64, []Episodes, error) {
 	var episodes []Episodes
 	num, err := o.Raw("SELECT id,title,add_time,num,play_url,comment FROM video_episodes WHERE video_id=? order by num asc", videoId).QueryRows(&episodes)
 	return num, episodes, err
+}
+
+// GetChannelTop 频道排行榜
+func GetChannelTop(channelId int) (int64, []VideoData, error) {
+	o := orm.NewOrm()
+	var videos []VideoData
+	num, err := o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count,is_end,comment FROM video WHERE status=1 AND channel_id=? ORDER BY comment DESC LIMIT 10", channelId).QueryRows(&videos)
+	return num, videos, err
+}
+
+// GetTypeTop 类型排行榜
+func GetTypeTop(typeId int) (int64, []VideoData, error) {
+	o := orm.NewOrm()
+	var videos []VideoData
+	num, err := o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count,is_end,comment FROM video WHERE status=1 AND type_id=? ORDER BY comment DESC LIMIT 10", typeId).QueryRows(&videos)
+	return num, videos, err
 }

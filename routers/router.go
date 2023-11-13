@@ -35,5 +35,14 @@ func init() {
 	beego.Router("/video/info", &controllers.VideoControllers{}, "get:VideoInfo")
 	beego.Router("/video/episodes/list", &controllers.VideoControllers{}, "get:VideoEpisodesList")
 
-	//beego.Include(&controllers.UserController{})
+	//视频评论
+	beego.Router("/comment/list", &controllers.CommentControllers{}, "get:List")
+	beego.Router("/comment/save", &controllers.CommentControllers{}, "post:Save")
+
+	//视频排行榜
+	beego.Router("/channel/top", &controllers.TopControllers{}, "get:ChannelTop")
+	beego.Router("/type/top", &controllers.TopControllers{}, "get:TypeTop")
+
+	//管理人员发送消息给对应用户
+	beego.Router("/send/message", &controllers.UserController{}, "post:SendMessageDo")
 }

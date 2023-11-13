@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"fyoukuApi/models"
 	"regexp"
+	"strconv"
+	"strings"
 
 	beego "github.com/astaxie/beego"
 )
@@ -84,6 +86,35 @@ func (u *UserController) LoginDo() {
 		u.ServeJSON()
 	} else {
 		u.Data["json"] = ReturnError(4004, "手机号或密码不正确")
+		u.ServeJSON()
+	}
+}
+
+// SendMessageDo 批量向用户发送通知消息
+func (u *UserController) SendMessageDo() {
+	uids := u.GetString("uids")
+	content := u.GetString("content")
+
+	if uids == "" {
+		u.Data["json"] = ReturnError(4001, "请填写接收人~")
+		u.ServeJSON()
+	}
+	if content == "" {
+		u.Data["json"] = ReturnError(4002, "请填写发送内容")
+		u.ServeJSON()
+	}
+	meaageId, err := models.SendMessageDo(content)
+	if err != nil {
+		u.Data["json"] = ReturnError(5000, "发生消息失败")
+		u.ServeJSON()
+	} else {
+		uidConfig := strings.Split(uids, ",")
+		for _, id := range uidConfig {
+			//发生消息给用户，就是写入数据表
+			uid, _ := strconv.Atoi(id)
+			models.SendMessageUser(uid, meaageId)
+		}
+		u.Data["json"] = ReturnSuccess(0, "发送成功", "", 1)
 		u.ServeJSON()
 	}
 }

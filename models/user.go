@@ -65,3 +65,15 @@ func IsMobileLogin(mobile string, password string) (int, string) {
 	}
 	return user.Id, user.Name
 }
+
+func RedisGetUserInfo(userId int) (UserInfo, error) {
+	return UserInfo{}, nil
+}
+
+// GetUserInfo 根据用户ID获取用户信息
+func GetUserInfo(uid int) (UserInfo, error) {
+	o := orm.NewOrm()
+	var user UserInfo
+	err := o.Raw("SELECT id,name,add_time,avatar FROM user WHERE id=? LIMIT 1", uid).QueryRow(&user)
+	return user, err
+}
