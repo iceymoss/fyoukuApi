@@ -45,4 +45,8 @@ func init() {
 
 	//管理人员发送消息给对应用户
 	beego.Router("/send/message", &controllers.UserController{}, "post:SendMessageDo")
+
+	//弹幕功能
+	beego.Router("/barrage/ws", &controllers.BarrageControllers{}, "get:BarrageWs")
+	beego.Router("/barrage/save", &controllers.BarrageControllers{}, "post:Save")
 }
