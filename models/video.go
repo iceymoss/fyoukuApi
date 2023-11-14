@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/astaxie/beego/orm"
 	"time"
 )
@@ -119,7 +120,7 @@ func GetVideoInfo(videoId int) (Video, error) {
 func GetVideoEpisodesList(videoId int) (int64, []Episodes, error) {
 	o := orm.NewOrm()
 	var episodes []Episodes
-	num, err := o.Raw("SELECT id,title,add_time,num,play_url,comment FROM video_episodes WHERE video_id=? order by num asc", videoId).QueryRows(&episodes)
+	num, err := o.Raw("SELECT id,title,add_time,num,play_url,comment,aliyun_video_id  FROM video_episodes WHERE video_id=? order by num asc", videoId).QueryRows(&episodes)
 	return num, episodes, err
 }
 
@@ -175,4 +176,11 @@ func VideoSave(title, subTitle string, channelId, regionId, typeId int, playUrl 
 	_, err = o.Raw("INSERT INTO video_episodes (title,add_time,num,video_id,play_url,status,comment,aliyun_video_id) VALUES (?,?,?,?,?,?,?,?)", subTitle, t, 1, videoId, playUrl, 1, 0, aliyunVideoId).Exec()
 	//fmt.Println(err)
 	return nil
+}
+
+func SaveAliyunVideo(videoId string, log string) error {
+	o := orm.NewOrm()
+	_, err := o.Raw("INSERT INTO aliyun_video (video_id, log, add_time) VALUES (?,?,?)", videoId, log, time.Now().Unix()).Exec()
+	fmt.Println(err)
+	return err
 }
