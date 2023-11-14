@@ -160,3 +160,21 @@ func (v *VideoControllers) VideoEpisodesList() {
 		v.ServeJSON()
 	}
 }
+
+// UserVideos 用户视频管理-列表
+func (v *VideoControllers) UserVideos() {
+	//获取用户id
+	uid, _ := v.GetInt("uid")
+	if uid == 0 {
+		v.Data["json"] = ReturnError(4002, "请登录账号")
+		v.ServeJSON()
+	}
+	num, videos, err := models.GetUserVideo(uid)
+	if err != nil {
+		v.Data["json"] = ReturnError(4004, "您还没有发布作品")
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", videos, num)
+		v.ServeJSON()
+	}
+}

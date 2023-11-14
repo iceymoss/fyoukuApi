@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"fyoukuApi/models"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 	"strings"
@@ -117,4 +119,34 @@ func (u *UserController) SendMessageDo() {
 		u.Data["json"] = ReturnSuccess(0, "发送成功", "", 1)
 		u.ServeJSON()
 	}
+}
+
+// UploadVideo 上传视频文件，方法一：上传到服务器本地存储
+func (u *UserController) UploadVideo() {
+	var (
+		err error
+	)
+	title := make([]byte, 0)
+	r := *u.Ctx.Request
+	//获取表单提交的数据
+	uid := r.FormValue("uid")
+	//获取文件流
+	file, header, _ := r.FormFile("file")
+	//转换文件流为二进制
+	b, _ := ioutil.ReadAll(file)
+
+	//生成文件名
+	filename := strings.Split(header.Filename, ".")
+	filename[0] = GetVideoName(uid)
+	//文件保存的位置
+	var fileDir = "/Users/iceymoss/project/fyouku/fyouku/static/video/" + filename[0] + "." + filename[1]
+	//播放地址
+	var playUrl = "/static/video/" + filename[0] + "." + filename[1]
+	err = ioutil.WriteFile(fileDir, b, 0777)
+	if err == nil {
+		title, err = json.Marshal(ReturnSuccess(0, playUrl, nil, 1))
+	} else {
+		title, err = json.Marshal(ReturnError(5000, "上传失败，请联系客服"))
+	}
+	u.Ctx.WriteString(string(title))
 }

@@ -52,6 +52,8 @@ func (b *BarrageControllers) BarrageWs() {
 		var wsData WsData
 		json.Unmarshal([]byte(data), &wsData)
 
+		fmt.Println("data:", wsData)
+
 		//当前时间开始后的60s
 		endTime := wsData.CurrentTime + 60
 		//获取弹幕数据

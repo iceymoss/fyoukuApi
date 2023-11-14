@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/astaxie/beego"
+	"strconv"
 	"time"
 )
 
@@ -46,4 +47,12 @@ func MD5V(password string) string {
 func DateFormat(times int64) string {
 	video_time := time.Unix(times, 0)
 	return video_time.Format("2006-01-02")
+}
+
+// GetVideoName 视频文件名生成函数
+func GetVideoName(uid string) string {
+	//用户ID+精确到毫秒的时间戳
+	h := md5.New()
+	h.Write([]byte(uid + strconv.FormatInt(time.Now().UnixNano(), 10)))
+	return hex.EncodeToString(h.Sum(nil))
 }

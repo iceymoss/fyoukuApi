@@ -49,4 +49,9 @@ func init() {
 	//弹幕功能
 	beego.Router("/barrage/ws", &controllers.BarrageControllers{}, "get:BarrageWs")
 	beego.Router("/barrage/save", &controllers.BarrageControllers{}, "post:Save")
+
+	//用户视频列表
+	beego.Router("/user/video", &controllers.VideoControllers{}, "get:UserVideos")
+	//用户上传视频
+	beego.Router("/uploadDo", &controllers.UserController{}, "post:UploadVideo")
 }
