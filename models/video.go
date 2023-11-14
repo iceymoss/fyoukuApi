@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/astaxie/beego/orm"
+	"time"
 )
 
 // Video 定义表结构
@@ -143,4 +144,35 @@ func GetUserVideo(uid int) (int64, []VideoData, error) {
 	var videos []VideoData
 	num, err := o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count, is_end FROM video WHERE user_id=? ORDER BY add_time DESC", uid).QueryRows(&videos)
 	return num, videos, err
+}
+
+func VideoSave(title, subTitle string, channelId, regionId, typeId int, playUrl string, uid int, aliyunVideoId string) error {
+	o := orm.NewOrm()
+	t := time.Now().Unix()
+	video := Video{
+		Title:              title,
+		SubTitle:           subTitle,
+		AddTime:            t,
+		Img:                "",
+		Img1:               "",
+		EpisodesCount:      1,
+		IsEnd:              1,
+		ChannelId:          channelId,
+		Status:             1,
+		RegionId:           regionId,
+		TypeId:             typeId,
+		EpisodesUpdateTime: t,
+		Comment:            0,
+		UserId:             uid,
+	}
+	videoId, err := o.Insert(&video)
+	if err != nil {
+		return err
+	}
+	if aliyunVideoId != "" {
+		playUrl = ""
+	}
+	_, err = o.Raw("INSERT INTO video_episodes (title,add_time,num,video_id,play_url,status,comment,aliyun_video_id) VALUES (?,?,?,?,?,?,?,?)", subTitle, t, 1, videoId, playUrl, 1, 0, aliyunVideoId).Exec()
+	//fmt.Println(err)
+	return nil
 }

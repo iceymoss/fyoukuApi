@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"fyoukuApi/models"
 	"github.com/astaxie/beego"
+	"io/ioutil"
+	"strings"
 )
 
 type VideoControllers struct {
@@ -175,6 +179,65 @@ func (v *VideoControllers) UserVideos() {
 		v.ServeJSON()
 	} else {
 		v.Data["json"] = ReturnSuccess(0, "success", videos, num)
+		v.ServeJSON()
+	}
+}
+
+// UploadVideo 上传视频文件，方法一：上传到服务器本地存储
+func (v *VideoControllers) UploadVideo() {
+	var (
+		err error
+	)
+	title := make([]byte, 0)
+	r := *v.Ctx.Request
+	//获取表单提交的数据
+	uid := r.FormValue("uid")
+	//获取文件流
+	file, header, _ := r.FormFile("file")
+	//转换文件流为二进制
+	b, _ := ioutil.ReadAll(file)
+
+	//生成文件名
+	filename := strings.Split(header.Filename, ".")
+	filename[0] = GetVideoName(uid)
+	//文件保存的位置
+	var fileDir = "/Users/iceymoss/project/fyouku/fyouku/static/video/" + filename[0] + "." + filename[1]
+	//播放地址
+	var playUrl = "/static/video/" + filename[0] + "." + filename[1]
+	err = ioutil.WriteFile(fileDir, b, 0777)
+	if err == nil {
+		title, err = json.Marshal(ReturnSuccess(0, playUrl, nil, 1))
+	} else {
+		title, err = json.Marshal(ReturnError(5000, "上传失败，请联系客服"))
+	}
+	v.Ctx.WriteString(string(title))
+}
+
+func (v *VideoControllers) VideoSave() {
+	playUrl := v.GetString("playUrl")
+	title := v.GetString("title")
+	subTitle := v.GetString("subTitle")
+	channelId, _ := v.GetInt("channelId")
+	typeId, _ := v.GetInt("typeId")
+	regionId, _ := v.GetInt("regionId")
+	uid, _ := v.GetInt("uid")
+	aliyunVideoId := v.GetString("aliyunVideoId")
+	fmt.Println("播放地址：", playUrl, "视频标题：", title)
+	if uid == 0 {
+		v.Data["json"] = ReturnError(4001, "请先登录")
+		v.ServeJSON()
+	}
+	if playUrl == "" {
+		v.Data["json"] = ReturnError(4002, "视频地址不能为空")
+		v.ServeJSON()
+	}
+
+	err := models.VideoSave(title, subTitle, channelId, regionId, typeId, playUrl, uid, aliyunVideoId)
+	if err != nil {
+		v.Data["json"] = ReturnError(5000, err)
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
 		v.ServeJSON()
 	}
 }

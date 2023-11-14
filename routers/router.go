@@ -53,5 +53,6 @@ func init() {
 	//用户视频列表
 	beego.Router("/user/video", &controllers.VideoControllers{}, "get:UserVideos")
 	//用户上传视频
-	beego.Router("/uploadDo", &controllers.UserController{}, "post:UploadVideo")
+	beego.Router("/uploadDo", &controllers.VideoControllers{}, "post:UploadVideo")
+	beego.Router("/video/save", &controllers.VideoControllers{}, "post:VideoSave")
 }
