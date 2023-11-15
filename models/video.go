@@ -45,11 +45,23 @@ type Episodes struct {
 	Num           int
 	PlayUrl       string
 	Comment       int
+	Status        int
+	AliyunVideoId string
+}
+
+type VideoEpisodes struct {
+	Id            int
+	Title         string
+	AddTime       int64
+	Num           int
+	PlayUrl       string
+	Comment       int
+	Status        int
 	AliyunVideoId string
 }
 
 func init() {
-	orm.RegisterModel(&Video{})
+	orm.RegisterModel(&Video{}, &VideoEpisodes{})
 }
 
 // GetChannelHotList 查询频道热门播放列表
@@ -114,6 +126,81 @@ func GetVideoInfo(videoId int) (Video, error) {
 	var video Video
 	err := o.Raw("SELECT * FROM video WHERE id=? LIMIT 1", videoId).QueryRow(&video)
 	return video, err
+}
+
+// UpdateVideoInfo 更新影视信息
+func UpdateVideoInfo(id int, title string, subTitle string, channelId int, typeId int, regionId int, img string, imgSub string, isEnd int) error {
+	o := orm.NewOrm()
+	var video Video
+	err := o.Raw("SELECT * FROM video WHERE id=? LIMIT 1", id).QueryRow(&video)
+	if err != nil {
+		return err
+	}
+
+	if title != "" {
+		video.Title = title
+	}
+	fmt.Println("subtitle: ", subTitle)
+	if subTitle != "" {
+		video.SubTitle = subTitle
+	}
+	if channelId != 0 {
+		video.ChannelId = channelId
+	}
+	if typeId != 0 {
+		video.TypeId = typeId
+	}
+	if regionId != 0 {
+		video.RegionId = regionId
+	}
+	if img != "" {
+		video.Img = img
+	}
+	if imgSub != "" {
+		video.Img1 = imgSub
+	}
+	video.IsEnd = isEnd
+	_, err = o.Update(&video)
+	return err
+}
+
+func EpisodesInfoUpdate(episodeId int, title string, num int, status int) error {
+	o := orm.NewOrm()
+	var episode VideoEpisodes
+	err := o.Raw("select * from fyouku.video_episodes where id = ? LIMIT 1", episodeId).QueryRow(&episode)
+	if err != nil {
+		return err
+	}
+	fmt.Println("data:", episode)
+	if title != "" {
+		episode.Title = title
+	}
+	if num > 0 {
+		episode.Num = num
+	}
+	episode.Status = status
+	_, err = o.Update(&episode)
+	fmt.Println("err: ", err)
+	return err
+}
+
+func EpisodeDelete(episodesId int) (int64, error) {
+	o := orm.NewOrm()
+	var episode VideoEpisodes
+	episode.Id = episodesId
+	return o.Delete(&episode)
+}
+
+func VideoDelete(videoId int) error {
+	o := orm.NewOrm()
+	var video Video
+	video.Id = videoId
+	_, err := o.Delete(&video)
+	if err != nil {
+		return err
+	}
+	_, err = o.Raw("delete from video_episodes where video_id = ?", videoId).Exec()
+	return err
 }
 
 // GetVideoEpisodesList 获取视频剧集列表

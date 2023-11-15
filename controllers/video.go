@@ -213,6 +213,36 @@ func (v *VideoControllers) UploadVideo() {
 	v.Ctx.WriteString(string(title))
 }
 
+// VideoImgSave 保存封面文件
+func (v *VideoControllers) VideoImgSave() {
+	var err error
+	title := make([]byte, 0)
+	r := *v.Ctx.Request
+	//获取表单提交的数据
+	uid := r.FormValue("uid")
+	//获取文件流
+	file, header, _ := r.FormFile("file")
+	//转换文件流为二进制
+	b, _ := ioutil.ReadAll(file)
+
+	//生成文件名
+	filename := strings.Split(header.Filename, ".")
+	filename[0] = GetVideoName(uid)
+
+	//文件保存的位置
+	var fileDir = "/Users/iceymoss/project/fyouku/fyouku/static/data/img/" + filename[0] + "." + filename[1]
+	err = ioutil.WriteFile(fileDir, b, 0777)
+	var playUrl = "/static/data/img/" + filename[0] + "." + filename[1]
+	err = ioutil.WriteFile(fileDir, b, 0777)
+	if err == nil {
+		title, err = json.Marshal(ReturnSuccess(0, playUrl, nil, 1))
+	} else {
+		title, err = json.Marshal(ReturnError(5000, "上传失败，请联系客服"))
+	}
+	v.Ctx.WriteString(string(title))
+}
+
+// VideoSave 保存视频信息
 func (v *VideoControllers) VideoSave() {
 	playUrl := v.GetString("playUrl")
 	title := v.GetString("title")
@@ -235,6 +265,101 @@ func (v *VideoControllers) VideoSave() {
 	err := models.VideoSave(title, subTitle, channelId, regionId, typeId, playUrl, uid, aliyunVideoId)
 	if err != nil {
 		v.Data["json"] = ReturnError(5000, err)
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
+		v.ServeJSON()
+	}
+}
+
+func (v *VideoControllers) VideoInfoUpdate() {
+	id, _ := v.GetInt("videoId")
+	uid, _ := v.GetInt("uid")
+	title := v.GetString("title")
+	subTitle := v.GetString("subTitle")
+	channelId, _ := v.GetInt("channelId")
+	typeId, _ := v.GetInt("typeId")
+	regionId, _ := v.GetInt("regionId")
+	img := v.GetString("img")
+	imgSub := v.GetString("img1")
+	isEnd, _ := v.GetInt("is_end")
+	if id == 0 {
+		v.Data["json"] = ReturnError(40001, "请选择编辑的影视")
+		v.ServeJSON()
+	}
+	if uid == 0 {
+		v.Data["json"] = ReturnError(40003, "请登录")
+		v.ServeJSON()
+	}
+	err := models.UpdateVideoInfo(id, title, subTitle, channelId, typeId, regionId, img, imgSub, isEnd)
+	if err != nil {
+		v.Data["json"] = ReturnError(5000, "更新失败"+err.Error())
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
+		v.ServeJSON()
+	}
+}
+
+func (v *VideoControllers) EpisodesInfoUpdate() {
+	episodeId, _ := v.GetInt("episodeId")
+	uid, _ := v.GetInt("uid")
+	title := v.GetString("title")
+	num, _ := v.GetInt("num")
+	status, _ := v.GetInt("status")
+	if episodeId == 0 {
+		v.Data["json"] = ReturnError(4004, "请选中视频")
+		v.ServeJSON()
+	}
+	if uid == 0 {
+		v.Data["json"] = ReturnError(40003, "请登录")
+		v.ServeJSON()
+	}
+	err := models.EpisodesInfoUpdate(episodeId, title, num, status)
+	if err != nil {
+		v.Data["json"] = ReturnError(5000, "更新失败")
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
+		v.ServeJSON()
+	}
+}
+
+func (v *VideoControllers) EpisodeDelete() {
+	episodeId, _ := v.GetInt("episodeId")
+	uid, _ := v.GetInt("uid")
+	if episodeId == 0 {
+		v.Data["json"] = ReturnError(4004, "请选中视频")
+		v.ServeJSON()
+	}
+	if uid == 0 {
+		v.Data["json"] = ReturnError(40003, "请登录")
+		v.ServeJSON()
+	}
+	num, err := models.EpisodeDelete(episodeId)
+	if err != nil {
+		v.Data["json"] = ReturnError(5000, "删除失败"+err.Error())
+		v.ServeJSON()
+	} else {
+		v.Data["json"] = ReturnSuccess(0, "success", nil, num)
+		v.ServeJSON()
+	}
+}
+
+func (v *VideoControllers) VideoDelete() {
+	videoId, _ := v.GetInt("videoId")
+	uid, _ := v.GetInt("uid")
+	if videoId == 0 {
+		v.Data["json"] = ReturnError(4004, "请选中影视")
+		v.ServeJSON()
+	}
+	if uid == 0 {
+		v.Data["json"] = ReturnError(40003, "请登录")
+		v.ServeJSON()
+	}
+	err := models.VideoDelete(videoId)
+	if err != nil {
+		v.Data["json"] = ReturnError(5000, "删除失败"+err.Error())
 		v.ServeJSON()
 	} else {
 		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
