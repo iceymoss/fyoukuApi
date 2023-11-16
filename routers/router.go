@@ -49,7 +49,6 @@ func init() {
 	beego.Router("/video/img", &controllers.VideoControllers{}, "post:VideoImgSave")
 	beego.Router("/video/update", &controllers.VideoControllers{}, "post:VideoInfoUpdate")
 	beego.Router("/video/delete", &controllers.VideoControllers{}, "delete:VideoDelete")
-
 	beego.Router("/video/episodes/update", &controllers.VideoControllers{}, "post:EpisodesInfoUpdate")
 	beego.Router("/video/episodes/delete", &controllers.VideoControllers{}, "delete:EpisodeDelete")
 	//上传视频到阿里云
