@@ -110,9 +110,11 @@ func (u *UserController) SendMessageDo() {
 	} else {
 		uidConfig := strings.Split(uids, ",")
 		for _, id := range uidConfig {
-			//发生消息给用户，就是写入数据表
+			//发送消息给用户，就是每一个用户写入一条记录
 			uid, _ := strconv.Atoi(id)
-			models.SendMessageUser(uid, meaageId)
+			//这里直接将数据写入到mq异步来发送消息给用户
+			//models.SendMessageUser(uid, meaageId)
+			models.MQSendMessageUser(uid, meaageId)
 		}
 		u.Data["json"] = ReturnSuccess(0, "发送成功", "", 1)
 		u.ServeJSON()

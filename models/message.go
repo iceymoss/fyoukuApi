@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"fyoukuApi/services/mq"
 	"github.com/astaxie/beego/orm"
 	"time"
 )
@@ -41,4 +43,18 @@ func SendMessageUser(uid int, msgId int64) (int64, error) {
 	msgUser.AddTime = time.Now().Unix()
 	msgUser.Status = 1
 	return o.Insert(&msgUser)
+}
+
+// MQSendMessageUser 将消息到mq中，改为异步写
+func MQSendMessageUser(uid int, msgId int64) {
+	type data struct {
+		userId int
+		msgId  int64
+	}
+	userMsg := data{
+		userId: uid,
+		msgId:  msgId,
+	}
+	jsonValue, _ := json.Marshal(userMsg)
+	mq.Publish("", "fyouku_send_message_user", string(jsonValue))
 }

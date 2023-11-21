@@ -302,6 +302,7 @@ func RedisGetChannelTop(channelId int) (int64, []VideoData, error) {
 		//zrevrange第一条获取到的是id,第二条是分数
 		res, _ := redis.Values(conn.Do("zrevrange", key, "0", "10", "WITHSCORES"))
 		for k, v := range res {
+			fmt.Println("评论数：", string(v.([]byte)))
 			if k%2 == 0 {
 				videoId, err := strconv.Atoi(string(v.([]byte)))
 				videosInfo, err := RedisGetVideoInfo(videoId)
@@ -350,7 +351,7 @@ func RedisGetTypeTop(typeId int) (int64, []VideoData, error) {
 	conn := redisClient.PoolConnect()
 	defer conn.Close()
 
-	key := "video:top:type:type:" + strconv.Itoa(typeId)
+	key := "video:top:type:typeId:" + strconv.Itoa(typeId)
 	exists, err := redis.Bool(conn.Do("exists", key))
 	if exists {
 		num = 0

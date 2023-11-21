@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"fyoukuApi/services/mq"
 	"github.com/astaxie/beego/orm"
 	"time"
 )
@@ -46,5 +48,24 @@ func SaveComment(episodesId int, videoId int, uid int, content string) error {
 	o.Raw("UPDATE video SET comment=comment+1 WHERE id=?", videoId).Exec()
 	//修改视频剧集的评论数
 	o.Raw("UPDATE video_episodes SET comment=comment+1 WHERE id=?", episodesId).Exec()
+
+	//逻辑：排行榜是依据评论数来设计的，为了实时获取排行榜数据，新增评论的视频id通过mq来转发到Redis进行累加
+	//更新redis排行榜 - 通过MQ来实现
+	//创建一个简单模式的MQ
+	//把要传递的数据转换为json字符串
+	videoObj := map[string]int{
+		"VideoId": videoId,
+	}
+	videoJson, _ := json.Marshal(videoObj)
+	mq.Publish("", "fyouku_top", string(videoJson))
+
+	//延迟增加评论数
+	videoCountObj := map[string]int{
+		"VideoId":    videoId,
+		"EpisodesId": episodesId,
+	}
+	videoCountJson, _ := json.Marshal(videoCountObj)
+	mq.PublishDlx("fyouku.comment.count", string(videoCountJson))
+
 	return err
 }
