@@ -16,7 +16,7 @@ func (t *TopControllers) ChannelTop() {
 		t.Data["json"] = ReturnError(4001, "频道id不能为空")
 		t.ServeJSON()
 	}
-	num, videos, err := models.GetChannelTop(channelId)
+	num, videos, err := models.RedisGetChannelTop(channelId)
 	if err != nil {
 		t.Data["json"] = ReturnError(4004, "没有相关内容")
 		t.ServeJSON()
@@ -26,6 +26,7 @@ func (t *TopControllers) ChannelTop() {
 	}
 }
 
+// TypeTop 根据频道获取排行榜
 func (t *TopControllers) TypeTop() {
 	typeId, _ := t.GetInt("typeId")
 	if typeId == 0 {
@@ -33,7 +34,7 @@ func (t *TopControllers) TypeTop() {
 		t.ServeJSON()
 		return
 	}
-	num, videos, err := models.GetTypeTop(typeId)
+	num, videos, err := models.RedisGetTypeTop(typeId)
 	if err != nil {
 		t.Data["json"] = ReturnError(4004, "没有相关内容")
 		t.ServeJSON()

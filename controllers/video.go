@@ -155,7 +155,7 @@ func (v *VideoControllers) VideoEpisodesList() {
 		v.Data["json"] = ReturnError(4001, "必须指定视频ID")
 		v.ServeJSON()
 	}
-	num, episodes, err := models.GetVideoEpisodesList(videoId)
+	num, episodes, err := models.RedisVideoEpisodesList(videoId)
 	if err == nil {
 		v.Data["json"] = ReturnSuccess(0, "success", episodes, num)
 		v.ServeJSON()
@@ -165,7 +165,7 @@ func (v *VideoControllers) VideoEpisodesList() {
 	}
 }
 
-// UserVideos 用户视频管理-列表
+// UserVideos 用户视频管理-视频列表
 func (v *VideoControllers) UserVideos() {
 	//获取用户id
 	uid, _ := v.GetInt("uid")
@@ -272,6 +272,7 @@ func (v *VideoControllers) VideoSave() {
 	}
 }
 
+// VideoInfoUpdate 更新影视
 func (v *VideoControllers) VideoInfoUpdate() {
 	id, _ := v.GetInt("videoId")
 	uid, _ := v.GetInt("uid")
@@ -301,6 +302,7 @@ func (v *VideoControllers) VideoInfoUpdate() {
 	}
 }
 
+// EpisodesInfoUpdate 更新视频
 func (v *VideoControllers) EpisodesInfoUpdate() {
 	episodeId, _ := v.GetInt("episodeId")
 	uid, _ := v.GetInt("uid")
@@ -325,6 +327,7 @@ func (v *VideoControllers) EpisodesInfoUpdate() {
 	}
 }
 
+// EpisodeDelete 删除视频
 func (v *VideoControllers) EpisodeDelete() {
 	episodeId, _ := v.GetInt("episodeId")
 	uid, _ := v.GetInt("uid")
@@ -346,6 +349,7 @@ func (v *VideoControllers) EpisodeDelete() {
 	}
 }
 
+// VideoDelete 删除影视
 func (v *VideoControllers) VideoDelete() {
 	videoId, _ := v.GetInt("videoId")
 	uid, _ := v.GetInt("uid")

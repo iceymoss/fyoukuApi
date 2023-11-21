@@ -23,6 +23,7 @@ type CommentInfo struct {
 	EpisodesId   int             `json:"episodesId"`
 }
 
+// List 视频评论列表
 func (c *CommentControllers) List() {
 	//获取剧集数
 	episodesId, _ := c.GetInt("episodesId")
@@ -54,7 +55,7 @@ func (c *CommentControllers) List() {
 			commentInfo.PraiseCount = v.PraiseCount
 			commentInfo.EpisodesId = v.EpisodesId
 			//获取用户信息
-			commentInfo.UserInfo, _ = models.GetUserInfo(v.UserId)
+			commentInfo.UserInfo, _ = models.RedisGetUserInfo(v.UserId)
 			data = append(data, commentInfo)
 		}
 		c.Data["json"] = ReturnSuccess(0, "success", data, num)

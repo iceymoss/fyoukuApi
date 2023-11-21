@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	redisClient "fyoukuApi/services/redis"
 	"github.com/astaxie/beego/orm"
@@ -240,6 +241,43 @@ func GetVideoEpisodesList(videoId int) (int64, []Episodes, error) {
 	return num, episodes, err
 }
 
+// RedisVideoEpisodesList redis作为缓存提高系统并发和稳定性，将影视的所有剧集存储到redis的list中
+func RedisVideoEpisodesList(videoId int) (int64, []Episodes, error) {
+	var episodes []Episodes
+	var err error
+	var num int64
+	conn := redisClient.PoolConnect()
+	defer conn.Close()
+
+	key := "video:episodes:videoId:" + strconv.Itoa(videoId)
+	exists, err := redis.Bool(conn.Do("exists", key))
+	if exists {
+		num, err = redis.Int64(conn.Do("llen", key))
+		if err == nil {
+			values, _ := redis.Values(conn.Do("lrange", key, "0", "-1"))
+			var episodeInfo Episodes
+			for _, value := range values {
+				err = json.Unmarshal(value.([]byte), &episodeInfo) //value.([]byte) interface{}类型断言
+				if err == nil {
+					episodes = append(episodes, episodeInfo)
+				}
+			}
+		}
+	} else {
+		o := orm.NewOrm()
+		num, err = o.Raw("SELECT id,title,add_time,num,play_url,comment,aliyun_video_id  FROM video_episodes WHERE video_id=? order by num asc", videoId).QueryRows(&episodes)
+		//将数组写到Redis的list中
+		for _, episode := range episodes {
+			jsonValue, err := json.Marshal(episode)
+			if err == nil {
+				conn.Do("rpush", key, jsonValue)
+			}
+		}
+		conn.Do("expire", key, 86400*time.Second)
+	}
+	return num, episodes, err
+}
+
 // GetChannelTop 频道排行榜
 func GetChannelTop(channelId int) (int64, []VideoData, error) {
 	o := orm.NewOrm()
@@ -248,11 +286,105 @@ func GetChannelTop(channelId int) (int64, []VideoData, error) {
 	return num, videos, err
 }
 
+// RedisGetChannelTop 增加缓存redis-频道排行榜
+func RedisGetChannelTop(channelId int) (int64, []VideoData, error) {
+	//基于评论热度进行排行，这里使用zset数据类型
+	var videos []VideoData
+	var num int64
+	var err error
+	conn := redisClient.PoolConnect()
+	defer conn.Close()
+
+	key := "video:top:channel:channelId:" + strconv.Itoa(channelId)
+	exists, err := redis.Bool(conn.Do("exists", key))
+	if exists {
+		num = 0
+		//zrevrange第一条获取到的是id,第二条是分数
+		res, _ := redis.Values(conn.Do("zrevrange", key, "0", "10", "WITHSCORES"))
+		for k, v := range res {
+			if k%2 == 0 {
+				videoId, err := strconv.Atoi(string(v.([]byte)))
+				videosInfo, err := RedisGetVideoInfo(videoId)
+				if err == nil {
+					video := VideoData{
+						Id:            videosInfo.Id,
+						Title:         videosInfo.Title,
+						SubTitle:      videosInfo.SubTitle,
+						AddTime:       videosInfo.AddTime,
+						Img:           videosInfo.Img,
+						Img1:          videosInfo.Img1,
+						EpisodesCount: videosInfo.EpisodesCount,
+						IsEnd:         videosInfo.IsEnd,
+						Comment:       videosInfo.Comment,
+					}
+					videos = append(videos, video)
+					num++
+				}
+			}
+		}
+	} else {
+		o := orm.NewOrm()
+		num, err = o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count,is_end,comment FROM video WHERE status=1 AND channel_id=? ORDER BY comment DESC LIMIT 10", channelId).QueryRows(&videos)
+		for _, video := range videos {
+			conn.Do("zadd", key, video.Comment, video.Id)
+		}
+		conn.Do("expire", key, 86400*time.Second)
+	}
+	return num, videos, err
+}
+
 // GetTypeTop 类型排行榜
 func GetTypeTop(typeId int) (int64, []VideoData, error) {
 	o := orm.NewOrm()
 	var videos []VideoData
 	num, err := o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count,is_end,comment FROM video WHERE status=1 AND type_id=? ORDER BY comment DESC LIMIT 10", typeId).QueryRows(&videos)
+	return num, videos, err
+}
+
+// RedisGetTypeTop 增加缓存redis-影视类型排行榜
+func RedisGetTypeTop(typeId int) (int64, []VideoData, error) {
+	//基于评论热度进行排行，这里使用zset数据类型
+	var videos []VideoData
+	var num int64
+	var err error
+	conn := redisClient.PoolConnect()
+	defer conn.Close()
+
+	key := "video:top:type:type:" + strconv.Itoa(typeId)
+	exists, err := redis.Bool(conn.Do("exists", key))
+	if exists {
+		num = 0
+		//zrevrange第一条获取到的是id,第二条是分数
+		res, _ := redis.Values(conn.Do("zrevrange", key, "0", "10", "WITHSCORES"))
+		for k, v := range res {
+			if k%2 == 0 {
+				videoId, err := strconv.Atoi(string(v.([]byte)))
+				videosInfo, err := RedisGetVideoInfo(videoId)
+				if err == nil {
+					video := VideoData{
+						Id:            videosInfo.Id,
+						Title:         videosInfo.Title,
+						SubTitle:      videosInfo.SubTitle,
+						AddTime:       videosInfo.AddTime,
+						Img:           videosInfo.Img,
+						Img1:          videosInfo.Img1,
+						EpisodesCount: videosInfo.EpisodesCount,
+						IsEnd:         videosInfo.IsEnd,
+						Comment:       videosInfo.Comment,
+					}
+					videos = append(videos, video)
+					num++
+				}
+			}
+		}
+	} else {
+		o := orm.NewOrm()
+		num, err = o.Raw("SELECT id,title,sub_title,img,img1,add_time,episodes_count,is_end,comment FROM video WHERE status=1 AND type_id=? ORDER BY comment DESC LIMIT 10", typeId).QueryRows(&videos)
+		for _, video := range videos {
+			conn.Do("zadd", key, video.Comment, video.Id)
+		}
+		conn.Do("expire", key, 86400*time.Second)
+	}
 	return num, videos, err
 }
 

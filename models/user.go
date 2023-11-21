@@ -1,7 +1,10 @@
 package models
 
 import (
+	redisClient "fyoukuApi/services/redis"
 	"github.com/astaxie/beego/orm"
+	"github.com/garyburd/redigo/redis"
+	"strconv"
 	"time"
 )
 
@@ -66,14 +69,35 @@ func IsMobileLogin(mobile string, password string) (int, string) {
 	return user.Id, user.Name
 }
 
-func RedisGetUserInfo(userId int) (UserInfo, error) {
-	return UserInfo{}, nil
-}
-
 // GetUserInfo 根据用户ID获取用户信息
 func GetUserInfo(uid int) (UserInfo, error) {
 	o := orm.NewOrm()
 	var user UserInfo
 	err := o.Raw("SELECT id,name,add_time,avatar FROM user WHERE id=? LIMIT 1", uid).QueryRow(&user)
 	return user, err
+}
+
+func RedisGetUserInfo(uid int) (UserInfo, error) {
+	var userInfo UserInfo
+	var err error
+	//到Redis查询，没有则去MySQL查询然后写入Redis中
+	conn := redisClient.PoolConnect()
+	defer conn.Close()
+
+	key := "user:id:" + strconv.Itoa(uid)
+	exists, err := redis.Bool(conn.Do("exists", key))
+	if exists { //key存在
+		res, _ := redis.Values(conn.Do("hgetall", key))
+		err = redis.ScanStruct(res, &userInfo)
+	} else { //key不存在，去MySQL查，写入Redis中
+		o := orm.NewOrm()
+		err = o.Raw("SELECT id,name,add_time,avatar FROM user WHERE id=? LIMIT 1", uid).QueryRow(&userInfo)
+		if err == nil {
+			_, err = conn.Do("hmset", redis.Args{key}.AddFlat(&userInfo)...)
+			if err == nil {
+				conn.Do("expire", key, 86400*time.Second)
+			}
+		}
+	}
+	return userInfo, err
 }
