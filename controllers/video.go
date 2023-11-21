@@ -138,7 +138,7 @@ func (v *VideoControllers) VideoInfo() {
 		v.Data["json"] = ReturnError(4001, "必须指定视频ID")
 		v.ServeJSON()
 	}
-	video, err := models.GetVideoInfo(videoId)
+	video, err := models.RedisGetVideoInfo(videoId)
 	if err == nil {
 		v.Data["json"] = ReturnSuccess(0, "success", video, 1)
 		v.ServeJSON()

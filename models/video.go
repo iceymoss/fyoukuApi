@@ -2,7 +2,10 @@ package models
 
 import (
 	"fmt"
+	redisClient "fyoukuApi/services/redis"
 	"github.com/astaxie/beego/orm"
+	"github.com/garyburd/redigo/redis"
+	"strconv"
 	"time"
 )
 
@@ -126,6 +129,32 @@ func GetVideoInfo(videoId int) (Video, error) {
 	var video Video
 	err := o.Raw("SELECT * FROM video WHERE id=? LIMIT 1", videoId).QueryRow(&video)
 	return video, err
+}
+
+func RedisGetVideoInfo(videoId int) (Video, error) {
+	//使用Redis做缓存，先到Redis里面查询，没有查询到就去MySQL查询，然后写入到Redis
+	var video Video
+	conn := redisClient.PoolConnect()
+	defer conn.Close()
+	//构建key
+	key := "video:id:" + strconv.Itoa(videoId)
+	//判断Redis是否存在
+	exists, err := redis.Bool(conn.Do("exists", key))
+	if exists { //存在
+		res, _ := redis.Values(conn.Do("hgetall", key))
+		err = redis.ScanStruct(res, &video)
+	} else { //不存在， 到MySQL里面查询
+		o := orm.NewOrm()
+		err = o.Raw("SELECT * FROM video WHERE id=? LIMIT 1", videoId).QueryRow(&video)
+		if err == nil {
+			//保存redis
+			_, err = conn.Do("hmset", redis.Args{key}.AddFlat(video)...)
+			if err == nil {
+				conn.Do("expire", key, 86400) //设置过期时间
+			}
+		}
+	}
+	return video, nil
 }
 
 // UpdateVideoInfo 更新影视信息
