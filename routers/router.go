@@ -56,4 +56,6 @@ func init() {
 	beego.Router("/aliyun/refresh/upload/video", &controllers.AliyunController{}, "post:RefreshUploadVideo")
 	beego.Router("/aliyun/video/play/auth", &controllers.AliyunController{}, "post:GetPlayAuth")
 	beego.Router("/aliyun/video/callback", &controllers.AliyunController{}, "get:VideoCallback")
+	//ip相关
+	beego.Router("/geoip/country", &controllers.GeoIpControllers{}, "get:GetCountryInfo")
 }

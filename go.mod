@@ -10,6 +10,7 @@ require (
 	github.com/garyburd/redigo v1.6.4
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/websocket v1.5.1
+	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/streadway/amqp v1.1.0
 )
@@ -28,6 +29,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b // indirect
+	github.com/oschwald/maxminddb-golang v1.11.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.15.1 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
