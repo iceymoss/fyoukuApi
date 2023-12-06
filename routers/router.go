@@ -58,4 +58,5 @@ func init() {
 	beego.Router("/aliyun/video/callback", &controllers.AliyunController{}, "get:VideoCallback")
 	//ip相关
 	beego.Router("/geoip/country", &controllers.GeoIpControllers{}, "get:GetCountryInfo")
+	beego.Router("/geoip/city", &controllers.GeoIpControllers{}, "get:GetCityInfo")
 }
