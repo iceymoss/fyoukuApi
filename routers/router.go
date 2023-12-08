@@ -31,7 +31,7 @@ func init() {
 	beego.Router("/video/info", &controllers.VideoControllers{}, "get:VideoInfo")
 	beego.Router("/video/episodes/list", &controllers.VideoControllers{}, "get:VideoEpisodesList")
 	//视频评论
-	beego.Router("/comment/list", &controllers.CommentControllers{}, "get:List")
+	beego.Router("/comment/list", &controllers.CommentControllers{}, "get:ListV2")
 	beego.Router("/comment/save", &controllers.CommentControllers{}, "post:Save")
 	//视频排行榜
 	beego.Router("/channel/top", &controllers.TopControllers{}, "get:ChannelTop")

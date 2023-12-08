@@ -63,6 +63,84 @@ func (c *CommentControllers) List() {
 	}
 }
 
+// ListV2 视频评论列表
+func (c *CommentControllers) ListV2() {
+	//获取剧集数
+	episodesId, _ := c.GetInt("episodesId")
+	//获取页码信息
+	limit, _ := c.GetInt("limit")
+	offset, _ := c.GetInt("offset")
+
+	if episodesId == 0 {
+		c.Data["json"] = ReturnError(4001, "必须指定视频剧集")
+		c.ServeJSON()
+	}
+	if limit == 0 {
+		limit = 12
+	}
+	num, comments, err := models.GetCommentList(episodesId, offset, limit)
+	if err != nil {
+		c.Data["json"] = ReturnError(4004, "没有相关内容")
+		c.ServeJSON()
+	} else {
+		var data []CommentInfo
+		var commentInfo CommentInfo
+
+		//并发获取用户用户信息
+		uidChan := make(chan int, 12)
+		closeChan := make(chan struct{}, 5)
+		resChan := make(chan models.UserInfo, 12)
+
+		//uidChan生产者
+		go func() {
+			for _, v := range comments {
+				uidChan <- v.UserId
+			}
+			close(uidChan)
+		}()
+
+		for i := 0; i < 5; i++ {
+			go chanGetUserInfo(uidChan, closeChan, resChan)
+		}
+
+		go func() {
+			for i := 0; i < 5; i++ {
+				<-closeChan
+			}
+			close(resChan)
+			close(closeChan)
+		}()
+
+		userInfoMap := make(map[int]models.UserInfo)
+		for r := range resChan {
+			userInfoMap[r.Id] = r
+		}
+		for _, v := range comments {
+			commentInfo.Id = v.Id
+			commentInfo.Content = v.Content
+			commentInfo.AddTime = v.AddTime
+			commentInfo.AddTimeTitle = DateFormat(v.AddTime)
+			commentInfo.UserId = v.UserId
+			commentInfo.Stamp = v.Stamp
+			commentInfo.PraiseCount = v.PraiseCount
+			commentInfo.EpisodesId = v.EpisodesId
+			commentInfo.UserInfo = userInfoMap[v.UserId]
+			data = append(data, commentInfo)
+		}
+		c.Data["json"] = ReturnSuccess(0, "success", data, num)
+		c.ServeJSON()
+	}
+}
+
+// chanGetUserInfo 为uidChan消费者和resChan的生产者
+func chanGetUserInfo(uidChan chan int, closeChan chan struct{}, resChan chan models.UserInfo) {
+	for uid := range uidChan {
+		userInfo, _ := models.RedisGetUserInfo(uid)
+		resChan <- userInfo
+	}
+	closeChan <- struct{}{}
+}
+
 func (c *CommentControllers) Save() {
 	//评论内容
 	content := c.GetString("content")
