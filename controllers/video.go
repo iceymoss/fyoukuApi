@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"fyoukuApi/models"
+	"fyoukuApi/services/es"
 	"github.com/astaxie/beego"
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
@@ -369,4 +371,31 @@ func (v *VideoControllers) VideoDelete() {
 		v.Data["json"] = ReturnSuccess(0, "success", nil, 1)
 		v.ServeJSON()
 	}
+}
+
+// SendEs 导入ES脚本
+func (vc *VideoControllers) SendEs() {
+	_, data, _ := models.GetAllList()
+	for _, v := range data {
+		body := map[string]interface{}{
+			"id":                   v.Id,
+			"title":                v.Title,
+			"sub_title":            v.SubTitle,
+			"add_time":             v.AddTime,
+			"img":                  v.Img,
+			"img1":                 v.Img1,
+			"episodes_count":       v.EpisodesCount,
+			"is_end":               v.IsEnd,
+			"channel_id":           v.ChannelId,
+			"status":               v.Status,
+			"region_id":            v.RegionId,
+			"type_id":              v.TypeId,
+			"episodes_update_time": v.EpisodesUpdateTime,
+			"comment":              v.Comment,
+			"user_id":              v.UserId,
+			"is_recommend":         v.IsRecommend,
+		}
+		es.EsAdd("fyouku_video", "video-"+strconv.Itoa(v.Id), body)
+	}
+	vc.Data["json"] = ReturnSuccess(0, "success", nil, 1)
 }
