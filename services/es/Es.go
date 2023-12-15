@@ -3,16 +3,17 @@ package es
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/astaxie/beego/httplib"
 )
 
+// 通过http协议的方式调用ES服务
 var esUrl string
 
 func init() {
 	esUrl = "http://127.0.0.1:9200/"
 }
 
+// EsSearch 搜索
 func EsSearch(indexName string, query map[string]interface{}, from int, size int, sort []map[string]string) HitsData {
 	searchQuery := map[string]interface{}{
 		"query": query,
@@ -35,7 +36,7 @@ func EsSearch(indexName string, query map[string]interface{}, from int, size int
 	return stb.Hits
 }
 
-// 解析获取到的值
+// ReqSearchData 解析获取到的值
 type ReqSearchData struct {
 	Hits HitsData `json:"hits"`
 }
@@ -51,7 +52,7 @@ type HitsTwoData struct {
 	Source json.RawMessage `json:"_source"`
 }
 
-// 添加
+// EsAdd 添加
 func EsAdd(indexName string, id string, body map[string]interface{}) bool {
 	req := httplib.Post(esUrl + indexName + "/_doc/" + id)
 	req.JSONBody(body)
@@ -59,12 +60,13 @@ func EsAdd(indexName string, id string, body map[string]interface{}) bool {
 	str, err := req.String()
 	if err != nil {
 		fmt.Println(err)
+		return false
 	}
 	fmt.Println(str)
 	return true
 }
 
-// 修改
+// EsEdit 修改
 func EsEdit(indexName string, id string, body map[string]interface{}) bool {
 	bodyData := map[string]interface{}{
 		"doc": body,
@@ -76,17 +78,19 @@ func EsEdit(indexName string, id string, body map[string]interface{}) bool {
 	str, err := req.String()
 	if err != nil {
 		fmt.Println(err)
+		return false
 	}
 	fmt.Println(str)
 	return true
 }
 
-// 删除
+// EsDelete 删除
 func EsDelete(indexName string, id string) bool {
 	req := httplib.Delete(esUrl + indexName + "/_doc/" + id)
 	str, err := req.String()
 	if err != nil {
 		fmt.Println(err)
+		return false
 	}
 	fmt.Println(str)
 	return true
