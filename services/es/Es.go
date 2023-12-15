@@ -29,6 +29,7 @@ func EsSearch(indexName string, query map[string]interface{}, from int, size int
 	fmt.Println(str)
 	if err != nil {
 		fmt.Println(err)
+		return HitsData{}
 	}
 	var stb ReqSearchData
 	err = json.Unmarshal([]byte(str), &stb)
