@@ -79,9 +79,9 @@ type resData struct {
 }
 
 func main() {
-	//addES()
-	//updateES()
+	addES()
+	updateES()
 	searchES()
-	//deleteES()
+	deleteES()
 
 }
