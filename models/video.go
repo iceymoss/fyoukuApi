@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	redisClient "fyoukuApi/services/redis"
 	"github.com/astaxie/beego/orm"
 	"github.com/garyburd/redigo/redis"
@@ -170,7 +169,6 @@ func UpdateVideoInfo(id int, title string, subTitle string, channelId int, typeI
 	if title != "" {
 		video.Title = title
 	}
-	fmt.Println("subtitle: ", subTitle)
 	if subTitle != "" {
 		video.SubTitle = subTitle
 	}
@@ -201,7 +199,6 @@ func EpisodesInfoUpdate(episodeId int, title string, num int, status int) error 
 	if err != nil {
 		return err
 	}
-	fmt.Println("data:", episode)
 	if title != "" {
 		episode.Title = title
 	}
@@ -210,7 +207,6 @@ func EpisodesInfoUpdate(episodeId int, title string, num int, status int) error 
 	}
 	episode.Status = status
 	_, err = o.Update(&episode)
-	fmt.Println("err: ", err)
 	return err
 }
 
@@ -302,7 +298,6 @@ func RedisGetChannelTop(channelId int) (int64, []VideoData, error) {
 		//zrevrange第一条获取到的是id,第二条是分数
 		res, _ := redis.Values(conn.Do("zrevrange", key, "0", "10", "WITHSCORES"))
 		for k, v := range res {
-			fmt.Println("评论数：", string(v.([]byte)))
 			if k%2 == 0 {
 				videoId, err := strconv.Atoi(string(v.([]byte)))
 				videosInfo, err := RedisGetVideoInfo(videoId)
@@ -423,14 +418,12 @@ func VideoSave(title, subTitle string, channelId, regionId, typeId int, playUrl 
 		playUrl = ""
 	}
 	_, err = o.Raw("INSERT INTO video_episodes (title,add_time,num,video_id,play_url,status,comment,aliyun_video_id) VALUES (?,?,?,?,?,?,?,?)", subTitle, t, 1, videoId, playUrl, 1, 0, aliyunVideoId).Exec()
-	//fmt.Println(err)
 	return nil
 }
 
 func SaveAliyunVideo(videoId string, log string) error {
 	o := orm.NewOrm()
 	_, err := o.Raw("INSERT INTO aliyun_video (video_id, log, add_time) VALUES (?,?,?)", videoId, log, time.Now().Unix()).Exec()
-	fmt.Println(err)
 	return err
 }
 
