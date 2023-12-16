@@ -13,8 +13,8 @@ func Execute() {
 		Short: "fyouku is 是启动项目任务的命令",
 	}
 
-	rootCmd.AddCommand(mq.Top())
-	rootCmd.AddCommand(mq.Send())
+	rootCmd.AddCommand(mq.Top)
+	rootCmd.AddCommand(mq.Send)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("任务启动失败: ", err)
