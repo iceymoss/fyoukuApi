@@ -12,6 +12,7 @@ import (
 	"strconv"
 )
 
+// mq消费者：基于评论控制排行榜，为了提高性能和实时，当评论增加时通过MQ将视频评论总数异步+1，从而使排行榜接口进行排行
 func main() {
 	beego.LoadAppConfig("ini", "../../conf/app.conf")
 	defaultdb := beego.AppConfig.String("defaultdb")
@@ -21,7 +22,7 @@ func main() {
 	mq.Consumer("", "fyouku_top", callback)
 }
 
-// callback 获取到mq消息，然后处理业务逻辑
+// callback 获取到mq消息，查询视频id然后评论数+1
 func callback(s string) {
 	type Data struct {
 		VideoId int

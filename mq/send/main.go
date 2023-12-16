@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// mq消费者：客服发消息只需要向mq发送，消费者进行异步处理
 func main() {
 	beego.LoadAppConfig("ini", "../../conf/app.conf")
 	defaultdb := beego.AppConfig.String("defaultdb")
@@ -19,6 +20,7 @@ func main() {
 	mq.Consumer("", "fyouku_send_message_user", callback)
 }
 
+// callback具体的义务逻辑：将消息写入数据库，即给用户发送消息
 func callback(msg string) {
 	type data struct {
 		userId int

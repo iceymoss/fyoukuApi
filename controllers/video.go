@@ -7,6 +7,7 @@ import (
 	"fyoukuApi/services/es"
 	"github.com/astaxie/beego"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -395,7 +396,54 @@ func (vc *VideoControllers) SendEs() {
 			"user_id":              v.UserId,
 			"is_recommend":         v.IsRecommend,
 		}
-		es.EsAdd("fyouku_video", "video-"+strconv.Itoa(v.Id), body)
+		ok := es.EsAdd("fyouku_video", "video-"+strconv.Itoa(v.Id), body)
+		if !ok {
+			fmt.Printf("%d写入失败：", v.Id)
+			continue
+		}
 	}
 	vc.Data["json"] = ReturnSuccess(0, "success", nil, 1)
+	vc.ServeJSON()
+}
+
+// SearchVideo 关键词搜索
+func (v *VideoControllers) SearchVideo() {
+	keyWord := v.GetString("keyword")
+	limit, _ := v.GetInt("limit")
+	offset, _ := v.GetInt("offset")
+	fmt.Println("key:", keyWord)
+	if keyWord == "" {
+		v.Data["json"] = ReturnError(4001, "关键词不能为空")
+		v.ServeJSON()
+	}
+	//构造搜索条件
+	sort := []map[string]string{map[string]string{"id": "desc"}}
+	query := map[string]interface{}{
+		"bool": map[string]interface{}{
+			"must": map[string]interface{}{
+				"term": map[string]interface{}{
+					"title": keyWord,
+				},
+			},
+		},
+	}
+	res := es.EsSearch("fyouku_video", query, offset, limit, sort)
+	total := int64(res.Total.Value)
+	if total == 0 {
+		v.Data["json"] = ReturnError(4004, "没有相关信息")
+		v.ServeJSON()
+	}
+
+	//json解析数据
+	var videos []models.Video
+	for _, item := range res.Hits {
+		var video models.Video
+		if err := json.Unmarshal(item.Source, &video); err != nil {
+			log.Println("Unmarshal fail:", err)
+			continue
+		}
+		videos = append(videos, video)
+	}
+	v.Data["json"] = ReturnSuccess(0, "", videos, total)
+	v.ServeJSON()
 }

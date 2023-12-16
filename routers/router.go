@@ -61,4 +61,5 @@ func init() {
 	beego.Router("/geoip/city", &controllers.GeoIpControllers{}, "get:GetCityInfo")
 	//导入数据到ES
 	beego.Router("/video/send/es", &controllers.VideoControllers{}, "get:SendEs")
+	beego.Router("/video/search", &controllers.VideoControllers{}, "post:SearchVideo")
 }
