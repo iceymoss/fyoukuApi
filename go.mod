@@ -2,16 +2,16 @@ module fyoukuApi
 
 go 1.20
 
-require github.com/beego/beego/v2 v2.1.0
-
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.608
 	github.com/astaxie/beego v1.12.3
+	github.com/beego/beego/v2 v2.1.0
 	github.com/garyburd/redigo v1.6.4
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/spf13/cobra v1.8.0
 	github.com/streadway/amqp v1.1.0
 )
 
@@ -21,6 +21,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
@@ -37,6 +38,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
